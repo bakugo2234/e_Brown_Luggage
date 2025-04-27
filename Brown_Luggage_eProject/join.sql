@@ -1,16 +1,7 @@
 use shop_management;
 
-CREATE TABLE Users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    password VARCHAR(255),
-    phone VARCHAR(20),
-    address VARCHAR(255),
-    city VARCHAR(255),
-    role ENUM('customer', 'admin', 'staff'), -- Có thể thêm các giá trị role phù hợp
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
+
 CREATE TABLE Categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100)
@@ -34,6 +25,14 @@ CREATE TABLE Sizes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50)
 );
+CREATE TABLE Product_Sizes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    size_id int,
+    product_id int,
+    foreign key (size_id) references Sizes(id),
+    foreign key (product_id) references Products(id)
+);
+
 
 CREATE TABLE Products (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -51,6 +50,9 @@ CREATE TABLE Products (
     FOREIGN KEY (size_id) REFERENCES Sizes(id),
     FOREIGN KEY (color_id) REFERENCES Colors(id)
 );
+
+ALTER TABLE Products
+MODIFY COLUMN price INT NOT NULL;
 
 CREATE TABLE Product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,6 +112,9 @@ CREATE TABLE Feedbacks (
     FOREIGN KEY (product_id) REFERENCES Products(id)
 );
 
+ALTER TABLE Feedbacks
+ADD status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending';
+
 CREATE TABLE Contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
@@ -131,11 +136,17 @@ VALUES
 (1, 2),
 (1, 2);
 
+
+INSERT INTO Product_Sizes (product_id, size_id)
+VALUES 
+(1, 1),
+(1, 2),
+(1, 2);
 ALTER TABLE Products
-DROP FOREIGN KEY products_ibfk_4; -- Xóa khóa ngoại liên quan đến color_id (tên khóa có thể khác, kiểm tra trước)
+DROP FOREIGN KEY products_ibfk_3; -- Xóa khóa ngoại liên quan đến color_id (tên khóa có thể khác, kiểm tra trước)
 
 ALTER TABLE Products
-DROP COLUMN color_id;
+DROP COLUMN size_id;
 
 -- Insert into Categories
 
@@ -217,4 +228,29 @@ ORDER BY
 SELECT p.id, p.name, c.hex_code
 FROM Products p
 LEFT JOIN Colors c ON c.id = p.color_id;
+
+DESCRIBE Users;
+
+SELECT 
+    c.id AS cart_id,
+    c.product_id,
+    c.quantity,
+    p.name AS product_name,
+    p.price AS product_price,
+    pi.image_url AS product_image,
+    GROUP_CONCAT(DISTINCT sizes.name ORDER BY sizes.name) AS size_names,
+    
+    GROUP_CONCAT(cl.hex_code) AS colour_hex_code
+FROM 
+    Carts c
+    JOIN Products p ON c.product_id = p.id
+    LEFT JOIN Product_Images pi ON p.id = pi.product_id AND pi.u_primary = 1
+    LEFT JOIN Product_Sizes ps ON p.id = ps.product_id
+    LEFT JOIN Sizes sizes ON ps.size_id = sizes.id
+    LEFT JOIN Product_colors pc ON p.id = pc.product_id
+    LEFT JOIN Colors cl ON pc.color_id = cl.id
+WHERE 
+    c.user_id = 2
+GROUP BY 
+    c.id, c.product_id, c.quantity, p.name, p.price, pi.image_url;
 
