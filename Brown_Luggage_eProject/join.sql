@@ -1,7 +1,5 @@
 use shop_management;
 
-
-
 CREATE TABLE Categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100)
