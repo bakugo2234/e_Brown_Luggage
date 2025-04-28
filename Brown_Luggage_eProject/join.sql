@@ -1,3 +1,4 @@
+create database shop_management;
 USE shop_management;
 
 -- Create Users table (assumed structure since not provided)
@@ -80,7 +81,7 @@ CREATE TABLE Orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT,
     status ENUM('pending', 'processing', 'shipped', 'completed', 'cancelled'),
-    created fazia_timestamp DEFAULT CURRENT_TIMESTAMP,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES Users(id)
 );
 
@@ -201,6 +202,15 @@ VALUES
     -- Additional product
     ('Balo Herschel Orion', 'Very Good', 2, 3, 799000, 'female');
 
+SET FOREIGN_KEY_CHECKS = 0;
+DELETE FROM Products 
+WHERE name = 'Balo Herschel Orion' 
+AND description = 'Very Good' 
+AND category_id = 2
+AND brand_id = 3 
+AND price = 799000 
+AND gender = 'female';
+SET FOREIGN_KEY_CHECKS = 1;
 -- Insert into Product_Sizes
 INSERT INTO Product_Sizes (product_id, size_id)
 VALUES 
@@ -291,8 +301,8 @@ VALUES
 -- Insert into Feedbacks
 INSERT INTO Feedbacks (user_id, product_id, message, rating, status)
 VALUES 
-    (2, 2, 'Very Bad', 1, 'pending'),
-    (3, 3, 'Very Good', 5, 'pending');
+    (3, 1, 'Very Bad', 1, 'approved'),
+    (3, 2, 'Very Good', 5, 'approved');
 
 
 
@@ -347,4 +357,3 @@ WHERE
     c.user_id = 2
 GROUP BY 
     c.id, c.product_id, c.quantity, p.name, p.price, pi.image_url;
-
