@@ -10,7 +10,7 @@ CREATE TABLE Users (
     phone VARCHAR(20),
     address VARCHAR(255),
     city VARCHAR(100),
-    role ENUM('customer', 'admin') DEFAULT 'customer',
+    role ENUM('customer') DEFAULT 'customer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -200,7 +200,6 @@ VALUES
     ('Túi Pisani 7', 'Túi sách da', 3, 3, 719000, 'male'),
     ('Túi Pisani 8', 'Túi sách da', 3, 3, 739000, 'male'),
     -- Additional product
-    ('Balo Herschel Orion', 'Very Good', 2, 3, 799000, 'female');
 
 SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM Products 
