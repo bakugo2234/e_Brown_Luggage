@@ -1,25 +1,22 @@
 <?php
 require_once 'db_connect.php';
+require_once 'includes/functions_filter.php';
 include 'includes/header.php';
 
-$query = "SELECT 
-    p.id AS product_id,
-    p.name AS product_name,
-    p.price AS product_price,
-    GROUP_CONCAT(c.hex_code) AS colour_hex_code, -- Đổi tên alias để rõ ràng
-    pi.image_url AS product_image,
-    AVG(f.rating) AS average_rating
-FROM 
-    Products p
-   LEFT JOIN Product_colors pc ON p.id = pc.product_id
-    LEFT JOIN Colors c ON pc.color_id = c.id
-    LEFT JOIN Product_images pi ON p.id = pi.product_id AND pi.u_primary = 1
-    LEFT JOIN Feedbacks f ON p.id = f.product_id
-GROUP BY 
-    p.id, p.name, p.price, pi.image_url
-ORDER BY 
-    p.id;";
-$result = mysqli_query($conn, $query);
+// Get parameters
+$records_per_page = 8;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$category = isset($_GET['category']) ? trim($_GET['category']) : 4; // Default to category 2 (Balo)
+$min_price = isset($_GET['min_price']) && is_numeric($_GET['min_price']) ? (float)$_GET['min_price'] : '';
+$max_price = isset($_GET['max_price']) && is_numeric($_GET['max_price']) ? (float)$_GET['max_price'] : '';
+$color = isset($_GET['color']) && is_numeric($_GET['color']) ? (int)$_GET['color'] : '';
+$size = isset($_GET['size']) && is_numeric($_GET['size']) ? (int)$_GET['size'] : '';
+
+// Fetch data
+$data = getProducts($conn, $records_per_page, $page, $search, $category, $min_price, $max_price, $color, $size);
+$products = $data['products'];
+$total_pages = $data['total_pages'];
 
 ?>
 
@@ -46,7 +43,7 @@ $result = mysqli_query($conn, $query);
     </div>
     <div class="w-75 mx-auto"> <!-- Add this wrapper to match the custom-nav width and centering -->
     <div class="row">
-        <?php while ($product = mysqli_fetch_assoc($result)): ?>
+        <?php while ($product = $products->fetch_assoc()): ?>
             <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
             <a href="detail_product.php?id=<?php echo $product['product_id']; ?>">
                     <div class="card product-card w-63 h-auto">
@@ -86,6 +83,17 @@ $result = mysqli_query($conn, $query);
             </div>
         <?php endwhile; ?>
 
+        <!-- Phân trang -->
+        <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                        <li class="page-item <?php echo $page === $i ? 'active' : ''; ?>">
+                            <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo urlencode($category); ?>&min_price=<?php echo urlencode($min_price); ?>&max_price=<?php echo urlencode($max_price); ?>&color=<?php echo urlencode($color); ?>&size=<?php echo urlencode($size); ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+                </ul>
+            </nav>
+                                        
         <div class="description w-75 mx-auto mb-4">
             <p class="mb-3">Túi xách là item thông dụng trong những năm gần đây. Một chiếc túi có thiết kế độc đáo cùng phối màu thời thượng sẽ là điểm nhấn nổi bật cho tổng thể trang phục của bạn.Thời kỳ đầu, túi xách đơn thuần là vật dụng đựng những món đồ lặt vặt. Khi các quan niệm cũ về thời trang sụp đổ, đó là lúc chứng kiến túi xách có sự thay đổi ngoạn mục: tươi trẻ và phóng khoáng hơn.</p>
             <p>Túi xách có sự thay đổi đáng kể về hình dáng, thiết kế, màu sắc và chất liệu. Điều này giúp mọi người dễ dàng tìm ra lựa chọn phù hợp với sở thích và nhu cầu cá nhân. Với giá thành đa dạng từ rẻ đến cao cấp, việc sở hữu túi xách giờ đây đã trở nên dễ dàng hơn rất nhiều.
